@@ -25,10 +25,9 @@ public class Database
         }
     }
     
-    public void FindByPrice(string[] inputs)
+    public void FindByPrice(int price)
     {
         IDbCommand belowPrice = _connection.CreateCommand();
-        int price = int.Parse(inputs[1]);
         belowPrice.CommandText = "SELECT * FROM products WHERE price <= $price";
         belowPrice.Parameters.Add(new SqliteParameter("$price", price));
         using IDataReader reader = belowPrice.ExecuteReader();
@@ -39,11 +38,9 @@ public class Database
         }
     }
 
-    public void PurchaseProduct(string[] inputs)
+    public void PurchaseProduct(int productId, int quantity)
     {
         IDbCommand purchase = _connection.CreateCommand();
-        int productId = int.Parse(inputs[1]);
-        int quantity = int.Parse(inputs[2]);
         purchase.CommandText = "UPDATE products SET quantity = quantity - $quantity WHERE id = $id and quantity >= $quantity";
         purchase.Parameters.Add(new SqliteParameter("$quantity", quantity));
         purchase.Parameters.Add(new SqliteParameter("$id", productId));
@@ -54,13 +51,8 @@ public class Database
         }
     }
 
-    public void GetBalance(int? userId)
+    public void GetBalance(int userId)
     {
-        if (userId == null)
-        {
-            Console.WriteLine("Please log in with 'switch user' first.");
-            return;
-        }
         IDbCommand getBalance = _connection.CreateCommand();
         getBalance.CommandText = "SELECT balance FROM wallets WHERE user_id = $user_id";
         getBalance.Parameters.Add(new SqliteParameter("$user_id", userId));
@@ -71,13 +63,8 @@ public class Database
         }
     }
 
-    public void UpdateShippingAddress(int? userId, string[] inputs)
+    public void UpdateShippingAddress(int userId, string[] inputs)
     {
-        if (userId == null)
-        {
-            Console.WriteLine("Please log in with 'switch user' first.");
-            return;
-        }
         IDbCommand updateShippingAddress = _connection.CreateCommand();
         updateShippingAddress.CommandText = "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId";
         updateShippingAddress.Parameters.Add(new SqliteParameter("$shippingAddress", inputs[1]));

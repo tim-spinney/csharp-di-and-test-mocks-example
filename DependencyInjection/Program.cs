@@ -34,12 +34,15 @@ class Program
                 }
                 case 2:
                 {
-                    db.FindByPrice(inputs);
+                    int price = int.Parse(inputs[1]);
+                    db.FindByPrice(price);
                     break;
                 }
                 case 3:
                 {
-                    db.PurchaseProduct(inputs);
+                    int productId = int.Parse(inputs[1]);
+                    int quantity = int.Parse(inputs[2]);
+                    db.PurchaseProduct(productId, quantity);
                     break;
                 }
                 case 4:
@@ -49,12 +52,22 @@ class Program
                 }
                 case 5:
                 {
-                    db.GetBalance(userId);
+                    if (userId == null)
+                    {
+                        Console.WriteLine("Please log in with 'switch user' first.");
+                        return;
+                    }
+                    db.GetBalance((int)userId);
                     break;
                 }
                 case 6:
                 {
-                    db.UpdateShippingAddress(userId, inputs);
+                    if (userId == null)
+                    {
+                        Console.WriteLine("Please log in with 'switch user' first.");
+                        return;
+                    }
+                    db.UpdateShippingAddress((int)userId, inputs);
                     break;
                 }
             }
