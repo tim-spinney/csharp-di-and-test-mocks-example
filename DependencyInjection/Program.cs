@@ -11,14 +11,18 @@ class Program
         connection.Open();
         
         int option = -1;
-        while (option != 4)
+        int? userId = null;
+        while (option != 7)
         {
             Console.WriteLine("""
                               Options:
                               1. List in-stock products
                               2. List all products below a specific price
                               3. Purchase a product by id
-                              4. Exit
+                              4. Switch user
+                              5. Get current wallet balance
+                              6. Update shipping address
+                              7. Exit
                               """);
             String[] inputs = Console.ReadLine().Split(' ');
             option = int.Parse(inputs[0]);
@@ -65,6 +69,42 @@ class Program
                         Console.WriteLine("We're sorry, we do not have enough of product " + productId + " to complete your transaction.");
                     }
 
+                    break;
+                }
+                case 4:
+                {
+                    userId = int.Parse(inputs[1]);
+                    break;
+                }
+                case 5:
+                {
+                    if (userId == null)
+                    {
+                        Console.WriteLine("Please log in with 'switch user' first.");
+                        break;
+                    }
+                    IDbCommand getBalance = connection.CreateCommand();
+                    getBalance.CommandText = "SELECT balance FROM wallets WHERE user_id = $user_id";
+                    getBalance.Parameters.Add(new SqliteParameter("$user_id", userId));
+                    using IDataReader reader = getBalance.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        Console.WriteLine("Current balance: " + reader.GetString(0));
+                    }
+                    break;
+                }
+                case 6:
+                {
+                    if (userId == null)
+                    {
+                        Console.WriteLine("Please log in with 'switch user' first.");
+                        break;
+                    }
+                    IDbCommand updateShippingAddress = connection.CreateCommand();
+                    updateShippingAddress.CommandText = "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId";
+                    updateShippingAddress.Parameters.Add(new SqliteParameter("$shippingAddress", inputs[1]));
+                    updateShippingAddress.Parameters.Add(new SqliteParameter("$userId", userId));
+                    updateShippingAddress.ExecuteNonQuery();
                     break;
                 }
             }
