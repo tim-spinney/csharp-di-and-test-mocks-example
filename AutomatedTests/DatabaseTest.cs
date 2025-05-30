@@ -1,4 +1,5 @@
 ﻿using DependencyInjection;
+using Moq;
 
 namespace AutomatedTests;
 
@@ -9,25 +10,20 @@ public class DatabaseTest
     public void PurchasingProductDecreasesQuantity()
     {
         // Arrange
-        Database database = new Database();
+        Mock<IDbConnectionWrapper> mockDbConnectionWrapper = new Mock<IDbConnectionWrapper>();
+        mockDbConnectionWrapper
+            .Setup(m => m.ExecuteStatement(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+            .Returns(1);
+        Database database = new Database(mockDbConnectionWrapper.Object);
         
         // Act
-        database.PurchaseProduct(1, 1);
+        database.PurchaseProduct(4, 1);
         
         // Assert
-        database.FindInStock();
-        // Wait... we can't see the output it wrote to the console
-    }
-
-    [TestMethod("Trying to purchase more of a product than is in stock fails")]
-    public void PurchasingTooManyFails()
-    {
-        // Arrange
-        Database database = new Database();
-        
-        // Act
-        database.PurchaseProduct(1, 10);
-        
-        // Uhh... how do we assert?
+        Dictionary<string, object> paramsMatcher = It.Is<Dictionary<string, object>>(
+            p => (int)p["$id"] == 4 && (int)p["$quantity"] == 1
+        );
+        mockDbConnectionWrapper
+            .Verify(m => m.ExecuteStatement(It.IsAny<string>(), paramsMatcher));
     }
 }

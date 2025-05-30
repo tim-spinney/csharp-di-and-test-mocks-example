@@ -5,19 +5,16 @@ namespace DependencyInjection;
 
 public class Database
 {
-    private IDbConnection _connection;
+    private IDbConnectionWrapper _dbConnectionWrapper;
 
-    public Database()
+    public Database(IDbConnectionWrapper dbConnectionWrapper)
     {
-        _connection = new SqliteConnection("Data Source=db.sqlite");
-        _connection.Open();
+        _dbConnectionWrapper = dbConnectionWrapper;
     }
     
     public void FindInStock()
     {
-        IDbCommand inStock = _connection.CreateCommand();
-        inStock.CommandText = "SELECT * FROM products WHERE quantity > 0";
-        using IDataReader reader = inStock.ExecuteReader();
+        using IDataReader reader = _dbConnectionWrapper.ExecuteQuery("SELECT * FROM products WHERE quantity > 0");
         while (reader.Read())
         {
             Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
@@ -27,10 +24,10 @@ public class Database
     
     public void FindByPrice(int price)
     {
-        IDbCommand belowPrice = _connection.CreateCommand();
-        belowPrice.CommandText = "SELECT * FROM products WHERE price <= $price";
-        belowPrice.Parameters.Add(new SqliteParameter("$price", price));
-        using IDataReader reader = belowPrice.ExecuteReader();
+        using IDataReader reader = _dbConnectionWrapper.ExecuteQuery(
+            "SELECT * FROM products WHERE price <= $price",
+            new Dictionary<string, object> { { "$price", price } }
+        );
         while (reader.Read())
         {
             Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
@@ -40,11 +37,10 @@ public class Database
 
     public void PurchaseProduct(int productId, int quantity)
     {
-        IDbCommand purchase = _connection.CreateCommand();
-        purchase.CommandText = "UPDATE products SET quantity = quantity - $quantity WHERE id = $id and quantity >= $quantity";
-        purchase.Parameters.Add(new SqliteParameter("$quantity", quantity));
-        purchase.Parameters.Add(new SqliteParameter("$id", productId));
-        int numRowsAffected = purchase.ExecuteNonQuery();
+        int numRowsAffected = _dbConnectionWrapper.ExecuteStatement(
+            "UPDATE products SET quantity = quantity - $quantity WHERE id = $id and quantity >= $quantity",
+            new Dictionary<string, object> { { "$quantity", quantity }, { "$id", productId } }
+        );
         if (numRowsAffected == 0)
         {
             Console.WriteLine("We're sorry, we do not have enough of product " + productId + " to complete your transaction.");
@@ -53,23 +49,22 @@ public class Database
 
     public void GetBalance(int userId)
     {
-        IDbCommand getBalance = _connection.CreateCommand();
-        getBalance.CommandText = "SELECT balance FROM wallets WHERE user_id = $user_id";
-        getBalance.Parameters.Add(new SqliteParameter("$user_id", userId));
-        using IDataReader reader = getBalance.ExecuteReader();
+        using IDataReader reader = _dbConnectionWrapper.ExecuteQuery(
+            "SELECT balance FROM wallets WHERE user_id = $user_id",
+            new Dictionary<string, object> { { "$user_id", userId } }
+        );
         if (reader.Read())
         {
             Console.WriteLine("Current balance: " + reader.GetString(0));
         }
     }
 
-    public void UpdateShippingAddress(int userId, string[] inputs)
+    public void UpdateShippingAddress(int userId, string shippingAddress)
     {
-        IDbCommand updateShippingAddress = _connection.CreateCommand();
-        updateShippingAddress.CommandText = "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId";
-        updateShippingAddress.Parameters.Add(new SqliteParameter("$shippingAddress", inputs[1]));
-        updateShippingAddress.Parameters.Add(new SqliteParameter("$userId", userId));
-        updateShippingAddress.ExecuteNonQuery();
+        _dbConnectionWrapper.ExecuteStatement(
+            "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId",
+            new Dictionary<string, object> { { "$shipping_address", shippingAddress }, { "$userId", userId } }
+        );
     }
 
 }

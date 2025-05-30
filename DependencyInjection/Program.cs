@@ -7,7 +7,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Database db = new Database();
+        IDbConnection connection = new SqliteConnection("DataSource=db.sqlite");
+        connection.Open();
+        DbConnectionWrapper dbConnectionWrapper = new DbConnectionWrapper(connection);
+        Database db = new Database(dbConnectionWrapper);
         
         int option = -1;
         int? userId = null;
@@ -67,7 +70,7 @@ class Program
                         Console.WriteLine("Please log in with 'switch user' first.");
                         return;
                     }
-                    db.UpdateShippingAddress((int)userId, inputs);
+                    db.UpdateShippingAddress((int)userId, inputs[1]);
                     break;
                 }
             }
