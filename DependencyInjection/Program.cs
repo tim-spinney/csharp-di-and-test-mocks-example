@@ -30,45 +30,17 @@ class Program
             {
                 case 1:
                 {
-                    IDbCommand inStock = connection.CreateCommand();
-                    inStock.CommandText = "SELECT * FROM products WHERE quantity > 0";
-                    using IDataReader reader = inStock.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
-                                          "@" + reader.GetInt32(2));
-                    }
-
+                    FindInStock(connection);
                     break;
                 }
                 case 2:
                 {
-                    IDbCommand belowPrice = connection.CreateCommand();
-                    int price = int.Parse(inputs[1]);
-                    belowPrice.CommandText = "SELECT * FROM products WHERE price <= $price";
-                    belowPrice.Parameters.Add(new SqliteParameter("$price", price));
-                    using IDataReader reader = belowPrice.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
-                                          "@" + reader.GetInt32(2));
-                    }
+                    FindByPrice(connection, inputs);
                     break;
                 }
                 case 3:
                 {
-                    IDbCommand purchase = connection.CreateCommand();
-                    int productId = int.Parse(inputs[1]);
-                    int quantity = int.Parse(inputs[2]);
-                    purchase.CommandText = "UPDATE products SET quantity = quantity - $quantity WHERE id = $id and quantity >= $quantity";
-                    purchase.Parameters.Add(new SqliteParameter("$quantity", quantity));
-                    purchase.Parameters.Add(new SqliteParameter("$id", productId));
-                    int numRowsAffected = purchase.ExecuteNonQuery();
-                    if (numRowsAffected == 0)
-                    {
-                        Console.WriteLine("We're sorry, we do not have enough of product " + productId + " to complete your transaction.");
-                    }
-
+                    PurchaseProduct(connection, inputs);
                     break;
                 }
                 case 4:
@@ -78,36 +50,88 @@ class Program
                 }
                 case 5:
                 {
-                    if (userId == null)
-                    {
-                        Console.WriteLine("Please log in with 'switch user' first.");
-                        break;
-                    }
-                    IDbCommand getBalance = connection.CreateCommand();
-                    getBalance.CommandText = "SELECT balance FROM wallets WHERE user_id = $user_id";
-                    getBalance.Parameters.Add(new SqliteParameter("$user_id", userId));
-                    using IDataReader reader = getBalance.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        Console.WriteLine("Current balance: " + reader.GetString(0));
-                    }
+                    GetBalance(userId, connection);
                     break;
                 }
                 case 6:
                 {
-                    if (userId == null)
-                    {
-                        Console.WriteLine("Please log in with 'switch user' first.");
-                        break;
-                    }
-                    IDbCommand updateShippingAddress = connection.CreateCommand();
-                    updateShippingAddress.CommandText = "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId";
-                    updateShippingAddress.Parameters.Add(new SqliteParameter("$shippingAddress", inputs[1]));
-                    updateShippingAddress.Parameters.Add(new SqliteParameter("$userId", userId));
-                    updateShippingAddress.ExecuteNonQuery();
+                    UpdateShippingAddress(userId, connection, inputs);
                     break;
                 }
             }
         }
     }
+
+    private static void FindInStock(IDbConnection connection)
+    {
+        IDbCommand inStock = connection.CreateCommand();
+        inStock.CommandText = "SELECT * FROM products WHERE quantity > 0";
+        using IDataReader reader = inStock.ExecuteReader();
+        while (reader.Read())
+        {
+            Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
+                              "@" + reader.GetInt32(2));
+        }
+    }
+    
+    private static void FindByPrice(IDbConnection connection, string[] inputs)
+    {
+        IDbCommand belowPrice = connection.CreateCommand();
+        int price = int.Parse(inputs[1]);
+        belowPrice.CommandText = "SELECT * FROM products WHERE price <= $price";
+        belowPrice.Parameters.Add(new SqliteParameter("$price", price));
+        using IDataReader reader = belowPrice.ExecuteReader();
+        while (reader.Read())
+        {
+            Console.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + ": " + reader.GetInt32(3) +
+                              "@" + reader.GetInt32(2));
+        }
+    }
+
+    private static void PurchaseProduct(IDbConnection connection, string[] inputs)
+    {
+        IDbCommand purchase = connection.CreateCommand();
+        int productId = int.Parse(inputs[1]);
+        int quantity = int.Parse(inputs[2]);
+        purchase.CommandText = "UPDATE products SET quantity = quantity - $quantity WHERE id = $id and quantity >= $quantity";
+        purchase.Parameters.Add(new SqliteParameter("$quantity", quantity));
+        purchase.Parameters.Add(new SqliteParameter("$id", productId));
+        int numRowsAffected = purchase.ExecuteNonQuery();
+        if (numRowsAffected == 0)
+        {
+            Console.WriteLine("We're sorry, we do not have enough of product " + productId + " to complete your transaction.");
+        }
+    }
+
+    private static void GetBalance(int? userId, IDbConnection connection)
+    {
+        if (userId == null)
+        {
+            Console.WriteLine("Please log in with 'switch user' first.");
+            return;
+        }
+        IDbCommand getBalance = connection.CreateCommand();
+        getBalance.CommandText = "SELECT balance FROM wallets WHERE user_id = $user_id";
+        getBalance.Parameters.Add(new SqliteParameter("$user_id", userId));
+        using IDataReader reader = getBalance.ExecuteReader();
+        if (reader.Read())
+        {
+            Console.WriteLine("Current balance: " + reader.GetString(0));
+        }
+    }
+
+    private static void UpdateShippingAddress(int? userId, IDbConnection connection, string[] inputs)
+    {
+        if (userId == null)
+        {
+            Console.WriteLine("Please log in with 'switch user' first.");
+            return;
+        }
+        IDbCommand updateShippingAddress = connection.CreateCommand();
+        updateShippingAddress.CommandText = "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId";
+        updateShippingAddress.Parameters.Add(new SqliteParameter("$shippingAddress", inputs[1]));
+        updateShippingAddress.Parameters.Add(new SqliteParameter("$userId", userId));
+        updateShippingAddress.ExecuteNonQuery();
+    }
+
 }
