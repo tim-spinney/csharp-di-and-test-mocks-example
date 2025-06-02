@@ -26,4 +26,18 @@ public class ProductServiceTest
         mockDbConnectionWrapper
             .Verify(m => m.ExecuteStatement(It.IsAny<string>(), paramsMatcher));
     }
+
+    [TestMethod("Purchasing a non-existent product results in an exception")]
+    public void PurchasingNonExistentProductResultsInAnException()
+    {
+        // Arrange
+        Mock<IDbConnectionWrapper> mockDbConnectionWrapper = new Mock<IDbConnectionWrapper>();
+        mockDbConnectionWrapper
+            .Setup(m => m.ExecuteStatement(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+            .Returns(0);
+        ProductService productService = new ProductService(mockDbConnectionWrapper.Object);
+        
+        // Act and Assert - Act needs to be wrapped in Assert when expecting an exception 
+        Assert.ThrowsException<TransactionFailedException>(() => productService.PurchaseProduct(1, 1));
+    }
 }

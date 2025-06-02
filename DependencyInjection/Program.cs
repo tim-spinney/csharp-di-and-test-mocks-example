@@ -33,20 +33,34 @@ class Program
             {
                 case 1:
                 {
-                    productService.FindInStock();
+                    foreach (Product product in productService.FindInStock())
+                    {
+                        Console.WriteLine(product);
+                    }
+
                     break;
                 }
                 case 2:
                 {
                     int price = int.Parse(inputs[1]);
-                    productService.FindByPrice(price);
+                    foreach (Product product in productService.FindByPrice(price))
+                    {
+                        Console.WriteLine(product);
+                    }
                     break;
                 }
                 case 3:
                 {
                     int productId = int.Parse(inputs[1]);
                     int quantity = int.Parse(inputs[2]);
-                    productService.PurchaseProduct(productId, quantity);
+                    try
+                    {
+                        productService.PurchaseProduct(productId, quantity);
+                    }
+                    catch (TransactionFailedException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                     break;
                 }
                 case 4:
