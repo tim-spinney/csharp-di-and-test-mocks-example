@@ -4,7 +4,7 @@ using Moq;
 namespace AutomatedTests;
 
 [TestClass]
-public class DatabaseTest
+public class ProductServiceTest
 {
     [TestMethod("Purchasing a product decreases its quantity")]
     public void PurchasingProductDecreasesQuantity()
@@ -14,10 +14,10 @@ public class DatabaseTest
         mockDbConnectionWrapper
             .Setup(m => m.ExecuteStatement(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
             .Returns(1);
-        Database database = new Database(mockDbConnectionWrapper.Object);
+        ProductService productService = new ProductService(mockDbConnectionWrapper.Object);
         
         // Act
-        database.PurchaseProduct(4, 1);
+        productService.PurchaseProduct(4, 1);
         
         // Assert
         Dictionary<string, object> paramsMatcher = It.Is<Dictionary<string, object>>(

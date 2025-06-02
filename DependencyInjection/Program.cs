@@ -10,7 +10,8 @@ class Program
         IDbConnection connection = new SqliteConnection("DataSource=db.sqlite");
         connection.Open();
         DbConnectionWrapper dbConnectionWrapper = new DbConnectionWrapper(connection);
-        Database db = new Database(dbConnectionWrapper);
+        ProductService productService = new ProductService(dbConnectionWrapper);
+        UserService userService = new UserService(dbConnectionWrapper);
         
         int option = -1;
         int? userId = null;
@@ -32,20 +33,20 @@ class Program
             {
                 case 1:
                 {
-                    db.FindInStock();
+                    productService.FindInStock();
                     break;
                 }
                 case 2:
                 {
                     int price = int.Parse(inputs[1]);
-                    db.FindByPrice(price);
+                    productService.FindByPrice(price);
                     break;
                 }
                 case 3:
                 {
                     int productId = int.Parse(inputs[1]);
                     int quantity = int.Parse(inputs[2]);
-                    db.PurchaseProduct(productId, quantity);
+                    productService.PurchaseProduct(productId, quantity);
                     break;
                 }
                 case 4:
@@ -60,7 +61,7 @@ class Program
                         Console.WriteLine("Please log in with 'switch user' first.");
                         return;
                     }
-                    db.GetBalance((int)userId);
+                    userService.GetBalance((int)userId);
                     break;
                 }
                 case 6:
@@ -70,7 +71,7 @@ class Program
                         Console.WriteLine("Please log in with 'switch user' first.");
                         return;
                     }
-                    db.UpdateShippingAddress((int)userId, inputs[1]);
+                    userService.UpdateShippingAddress((int)userId, inputs[1]);
                     break;
                 }
             }
