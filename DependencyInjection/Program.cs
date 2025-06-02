@@ -75,7 +75,17 @@ class Program
                         Console.WriteLine("Please log in with 'switch user' first.");
                         return;
                     }
-                    userService.GetBalance((int)userId);
+
+                    try
+                    {
+                        int balance = userService.GetBalance((int)userId);
+                        Console.WriteLine("Your balance is: " + balance);
+                    }
+                    catch (UnknownUserException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
                     break;
                 }
                 case 6:
@@ -85,7 +95,15 @@ class Program
                         Console.WriteLine("Please log in with 'switch user' first.");
                         return;
                     }
-                    userService.UpdateShippingAddress((int)userId, inputs[1]);
+                    bool succeeded = userService.UpdateShippingAddress((int)userId, inputs[1]);
+                    if (succeeded)
+                    {
+                        Console.WriteLine("Your shipping address has been updated.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("We're sorry, something went wrong. Please try again later even though that probably won't do anything.");
+                    }
                     break;
                 }
             }

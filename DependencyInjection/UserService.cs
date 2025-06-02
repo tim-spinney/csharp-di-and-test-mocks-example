@@ -11,7 +11,7 @@ public class UserService
         _dbConnectionWrapper = dbConnectionWrapper;
     }
     
-    public void GetBalance(int userId)
+    public int GetBalance(int userId)
     {
         using IDataReader reader = _dbConnectionWrapper.ExecuteQuery(
             "SELECT balance FROM wallets WHERE user_id = $user_id",
@@ -19,15 +19,17 @@ public class UserService
         );
         if (reader.Read())
         {
-            Console.WriteLine("Current balance: " + reader.GetString(0));
+            return reader.GetInt32(0);
         }
+        throw new UnknownUserException(userId);
     }
 
-    public void UpdateShippingAddress(int userId, string shippingAddress)
+    public bool UpdateShippingAddress(int userId, string shippingAddress)
     {
-        _dbConnectionWrapper.ExecuteStatement(
+        int rowsAffected = _dbConnectionWrapper.ExecuteStatement(
             "UPDATE users SET shipping_address = $shippingAddress WHERE id = $userId",
             new Dictionary<string, object> { { "$shipping_address", shippingAddress }, { "$userId", userId } }
         );
+        return rowsAffected > 0;
     }
 }
