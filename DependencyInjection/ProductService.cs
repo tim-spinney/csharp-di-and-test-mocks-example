@@ -2,7 +2,7 @@
 
 namespace DependencyInjection;
 
-public class ProductService
+public class ProductService : IProductService
 {
     private IDbConnectionWrapper _dbConnectionWrapper;
 

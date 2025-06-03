@@ -7,6 +7,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        
         IDbConnection connection = new SqliteConnection("DataSource=db.sqlite");
         connection.Open();
         DbConnectionWrapper dbConnectionWrapper = new DbConnectionWrapper(connection);

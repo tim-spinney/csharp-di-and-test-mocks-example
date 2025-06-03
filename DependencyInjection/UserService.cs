@@ -2,7 +2,7 @@
 
 namespace DependencyInjection;
 
-public class UserService
+public class UserService : IUserService
 {
     private IDbConnectionWrapper _dbConnectionWrapper;
 
